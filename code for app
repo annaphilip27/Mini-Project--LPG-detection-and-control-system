@@ -1,0 +1,472 @@
+package com.example.lpg
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.lpg.ui.theme.LpGTheme
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        setContent {
+            val navController = rememberNavController()
+            NavHost(navController =navController, startDestination ="screen_a") {
+                composable("screen_a"){
+                    Login(navController)
+                }
+                composable("screen_b"){
+                    MainScreen()
+                }
+            }
+        }
+        }
+    }
+package com.example.lpg
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+
+@Composable
+fun Login(navController : NavController){
+    var  username by remember {
+        mutableStateOf("")
+    }
+    var  password by remember {
+        mutableStateOf("")
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Image(painter = painterResource(id = R.drawable.loginicon), contentDescription = "login image", modifier = Modifier.size(200.dp))
+        Text(text = "Sign in",fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(4.dp))
+        OutlinedTextField(
+            value = username, onValueChange = {username = it},
+            label = {
+                Text(text = "Username")
+            }
+        )
+        Spacer(modifier = Modifier.height(3.dp))
+        OutlinedTextField(
+            value = password, onValueChange = {password = it},
+            label = {
+                Text(text = "Password")
+
+            },
+            visualTransformation = PasswordVisualTransformation()
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Button(onClick = {
+            if(username == "AJM" && password == "123"){
+                navController.navigate("screen_b")
+            }
+        }) {
+            Text(text ="Login" )
+        }
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(text = "Forgot Password", modifier = Modifier.clickable {  })
+        Spacer(modifier = Modifier.height(36.dp))
+        Text(text = "Or Sign in with")
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(40.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Image(painter = painterResource(id = R.drawable.facebookicon),
+                contentDescription = "fb",
+                modifier = Modifier
+                    .size(40.dp)
+                    .clickable { }
+            )
+            Image(painter = painterResource(id = R.drawable.googleicon),
+                contentDescription = "gg",
+                modifier = Modifier
+                    .size(40.dp)
+                    .clickable { }
+            )
+        }
+
+    }
+}
+
+package com.example.lpg
+import android.content.ContentValues.TAG
+import android.health.connect.datatypes.units.Percentage
+import android.util.Log
+import android.util.Size
+import android.widget.Switch
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.VectorProperty
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.getValue
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.Delay
+import org.w3c.dom.Text
+import java.util.IllegalFormatWidthException
+import kotlin.time.Duration
+
+
+@Composable
+fun MainScreen() {
+    val database = Firebase.database
+    val myRef = database.getReference("hello/temp")
+    val youRef = database.getReference("test/concen")
+    val dataRef = database.getReference("varad/level")
+    val theyRef = database.getReference("power/state")
+    val ourRef = database.getReference("lpg/state")
+    val themRef = database.getReference("nitrogen/state")
+    val hereRef = database.getReference("exhaust/state")
+    val thereRef = database.getReference("blower/state")
+    var temp by remember { mutableIntStateOf(0) }
+    var level by remember { mutableIntStateOf(0) }
+    var concen by remember { mutableIntStateOf(0) }
+    var switch1 by remember { mutableStateOf(false) }
+    var switch2 by remember { mutableStateOf(false) }
+    var switch3 by remember { mutableStateOf(false) }
+    var switch4 by remember { mutableStateOf(false) }
+    var switch5 by remember { mutableStateOf(false) }
+
+
+
+    youRef.addValueEventListener(object : ValueEventListener {
+
+        override fun onDataChange(snapshot: DataSnapshot) {
+            val rada = snapshot.getValue<Int>()
+            rada?.let {
+                concen = rada
+
+            }
+            Log.d(TAG, "Value is: $rada")
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            Log.w(TAG, "Failed to read value.", error.toException())
+        }
+
+    })
+    dataRef.addValueEventListener(object : ValueEventListener {
+
+        override fun onDataChange(snapshot: DataSnapshot) {
+            val vara = snapshot.getValue<Int>()
+            vara?.let {
+                level = vara
+            }
+            Log.d(TAG, "Value is: $vara")
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            Log.w(TAG, "Failed to read value.", error.toException())
+        }
+    })
+    myRef.addValueEventListener(object : ValueEventListener {
+
+        override fun onDataChange(snapshot: DataSnapshot) {
+            val value = snapshot.getValue<Int>()
+            value?.let {
+                temp = value
+            }
+            Log.d(TAG, "Value is: $value")
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            Log.w(TAG, "Failed to read value.", error.toException())
+        }
+
+    })
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 0.dp)
+    ) {
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+            Spacer(modifier = Modifier.height(120.dp))
+            Spacer(modifier = Modifier.width(500.dp))
+
+            Text(text = "LPG Concentration = $temp")
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Button(onClick = { youRef.setValue(200) }) {
+
+                Text(text = "Level 1 Safety Measure")
+            }
+            Button(onClick = { youRef.setValue(300) }) {
+
+                Text(text = "Level 2 Safety Measure")
+            }
+            Button(onClick = { youRef.setValue(400) }) {
+
+                Text(text = "Level 3 Safety Measure")
+            }
+
+        }
+
+    }
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+            Spacer(modifier = Modifier.height(432.dp))
+            Spacer(modifier = Modifier.width(500.dp))
+
+            Text(text = "LPG Lvel is $level")
+            Button(onClick = { /TODO/ }) {
+                Text(text = "Book New Cylinder")
+            }
+        }
+    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(520.dp))
+            Spacer(modifier = Modifier.width(500.dp))
+            Text(text = "Individual Controlling")
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 5.dp), horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Switch(checked = switch1, onCheckedChange = {
+                    switch1 = it
+                    theyRef.setValue(it)
+                })
+                Switch(checked = switch2, onCheckedChange = {
+                    switch2 = it
+                    ourRef.setValue(it)
+                })
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 0.dp), horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Text(text = "Power shutdown")
+                Text(text = "Lpg Valve")
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                Switch(checked = switch3, onCheckedChange = {
+                    switch3 = it
+                    themRef.setValue(it)
+                })
+            }
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 0.dp), horizontalArrangement = Arrangement.Center) {
+                Text(text = "Nitrogen Valve")
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Switch(checked = switch4, onCheckedChange = {
+                    switch4 = it
+                    hereRef.setValue(it)
+                })
+                Switch(checked = switch5, onCheckedChange = {
+                    switch5 = it
+                    thereRef.setValue(it)
+                })
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 0.dp), horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Text(text = "Exhaust fan")
+                Text(text = "Blower fan")
+            }
+        }
+
+        Box(
+            contentAlignment = Alignment.TopCenter,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 10.dp)
+        ) {
+            Spacer(modifier = Modifier.height(100.dp))
+            Spacer(modifier = Modifier.width(100.dp))
+            CircularProgressBar(percentage = (0.001f * temp), number = temp)
+
+        }
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 2.dp)
+        ) {
+            Spacer(modifier = Modifier.height(100.dp))
+            Spacer(modifier = Modifier.width(100.dp))
+            CircularProgressTool(percentage = ((level / 30f)), number = level)
+
+        }
+
+    }
+}
+    @Composable
+    fun CircularProgressBar(
+        percentage: Float,
+        number: Int,
+        fontSize: TextUnit = 28.sp,
+        radius: Dp = 50.dp,
+        colors: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Yellow,
+        strokeWidthException: Dp = 13.dp,
+        animDuration: Int = 1000,
+        animDelay: Int = 0
+    ) {
+        var animationPlayed by remember {
+            mutableStateOf(false)
+        }
+        val curPercentage = animateFloatAsState(
+            targetValue = if (animationPlayed) percentage else 0f,
+            animationSpec = tween(
+                durationMillis = animDuration,
+                delayMillis = animDelay
+            ), label = ""
+        )
+        LaunchedEffect(key1 = true) {
+            animationPlayed = true
+        }
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(radius * 2f)
+        ) {
+            Canvas(modifier = Modifier.size(radius * 2f)) {
+                drawArc(
+                    color = colors,
+                    90f,
+                    360 * curPercentage.value,
+                    useCenter = false,
+                    style = Stroke(strokeWidthException.toPx(), cap = StrokeCap.Round)
+
+                )
+            }
+            Text(
+                text = " " + (number / 10),
+            )
+
+        }
+    }
+
+    @Composable
+    fun CircularProgressTool(
+        percentage: Float,
+        number: Int,
+        fontSize: TextUnit = 28.sp,
+        radius: Dp = 50.dp,
+        colors: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Green,
+        strokeWidthException: Dp = 13.dp,
+        animDuration: Int = 30,
+        animDelay: Int = 0
+    ) {
+        var animationPlayed: Boolean by remember {
+            mutableStateOf(false)
+        }
+        val curPercentage = animateFloatAsState(
+            targetValue = if (animationPlayed) percentage else 0f,
+            animationSpec = tween(
+                durationMillis = animDuration,
+                delayMillis = animDelay
+            ), label = ""
+        )
+        LaunchedEffect(key1 = true) {
+            animationPlayed = true
+        }
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(radius * 2f)
+        ) {
+            Canvas(modifier = Modifier.size(radius * 2f)) {
+                drawArc(
+                    color = colors,
+                    90f,
+                    360 * curPercentage.value,
+                    useCenter = false,
+                    style = Stroke(strokeWidthException.toPx(), cap = StrokeCap.Round)
+                )
+            }
+            Text(
+                text = " $number",
+            )
+        }
+    }
