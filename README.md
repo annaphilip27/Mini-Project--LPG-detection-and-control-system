@@ -1,4 +1,4 @@
-When the LPG gas leaks and it reaches 200ppm the exhaust fan will turn on and cylinder valve is closed
+The project is LPG detection and control system. A 3 layer control system is developed. When the LPG gas leaks and it reaches 200ppm the exhaust fan will turn on and cylinder valve is closed
 and at 300ppm blower fan is turned on which cause  positive air displacement ,
 at 400ppm inert gas will be produced to lower the flammability of LPG. 
 
